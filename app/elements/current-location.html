@@ -1,0 +1,19 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<polymer-element name="current-location" attributes="position">
+  <template>
+    <content></content>
+  </template>
+  <script>
+  Polymer('current-location', {
+   applyAuthorStyles: true,
+   ready: function() {
+        var _this = this;
+        navigator.geolocation.getCurrentPosition(function(data) {
+            _this.position = data;
+            _this.fire('location-ready', {data: data});
+	});
+   }
+  });
+  </script>
+</polymer-element>
