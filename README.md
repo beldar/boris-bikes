@@ -3,7 +3,7 @@
 
 This is a Web Component that uses [Polymer](http://www.polymer-project.org/) to create it and to provide a fallback in case the browser doesn't suppoer web components.
 
-It provides a compnent that fetches the Tube Status updates with everything necessary encapsulated on one place.
+It provides a component that fetches the Boris Bike data (free bikes, free docks, etc) and provides and interface for it.
 
 You can find a working demo here: http://beldar.github.io/boris-bikes/
 
