@@ -10,7 +10,7 @@ if you don't want those elements.
 
 Also has a dependency on `polymer-ajax.html` but that's installed with bower.
 
-You can find a working demo here: http://acknet.github.io/boris-bikes/
+You can find a working demo here: http://beldar.github.io/boris-bikes/
 
 To know more about web components [there](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/) [are](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/) [tons](http://css-tricks.com/modular-future-web-components/) of [resources](https://www.google.co.uk/search?q=web+components) available.
 
