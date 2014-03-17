@@ -77,11 +77,8 @@
                     
             responseHandler: function() {
                 this.bikes = this.xmlToJson(this.data).stations;
-                console.log(this.bikes);
-                console.log(this.bikes['@attributes']);
                 this.lastUpdate = new Date(parseInt(this.bikes['@attributes'].lastUpdate));
                 this.bikes = this.bikes.station;
-                console.log(this.bikes);
             },
                     
             changeLocation: function() {
@@ -107,17 +104,18 @@
                 var minD = Infinity,
                         minBike = null,
                         d = Infinity;
+                if (typeof this.bikes !== "undefined") {
+                    this.bikes.forEach(function(bike, i) {
+                        d = this.getDistance(bike.lat, bike.long, this.latitude, this.longitude);
+                        if (d < minD) {
+                            minD = d;
+                            minBike = bike;
+                        }
+                    }, this);
 
-                this.bikes.forEach(function(bike, i) {
-                    d = this.getDistance(bike.lat, bike.long, this.latitude, this.longitude);
-                    if (d < minD) {
-                        minD = d;
-                        minBike = bike;
-                    }
-                }, this);
-
-                this.closestBike = minBike;
-                this.$.address.value = minBike.id;
+                    this.closestBike = minBike;
+                    this.$.address.value = minBike.id;
+                }
             },
                     
             getDistance: function(lat1, lon1, lat2, lon2) {

@@ -17,8 +17,6 @@ license that can be found in the LICENSE file.
  */
 -->
 
-<link rel="import" href="../polymer/polymer.html">
-
 <polymer-element name="google-map" attributes="latitude longitude zoom showCenterMarker map">
   <template>
     <style>
@@ -66,7 +64,6 @@ license that can be found in the LICENSE file.
       }
       
       function mapApiLoaded() {
-          console.log('mapApiLoaded');
         delete window[CALLBACK_NAME];
         pendingCallbacks.forEach(function(callback) {
           callback();
@@ -83,7 +80,6 @@ license that can be found in the LICENSE file.
           longitude: 'updateCenter'
         },
         ready: function() {
-            console.log('ready');
           loadMapApi(this.mapReady.bind(this));
         },
         enteredView: function() {

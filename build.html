@@ -1,0 +1,789 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Boris Bikes Component</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+        <link rel="stylesheet" href="styles/main.css">
+
+        <!-- Place your HTML imports here -->
+        <script src="../app/bower_components/platform/platform.js"></script>
+
+        
+    </head>
+    <body><polymer-element name="polymer-body" extends="body" assetpath="../app/bower_components/polymer/">
+
+  <script>
+
+  // upgrade polymer-body last so that it can contain other imported elements
+  document.addEventListener('polymer-ready', function() {
+    
+    Polymer('polymer-body', Platform.mixin({
+
+      created: function() {
+        this.template = document.createElement('template');
+        var body = wrap(document).body;
+        var c$ = body.childNodes.array();
+        for (var i=0, c; (c=c$[i]); i++) {
+          if (c.localName !== 'script') {
+            this.template.content.appendChild(c);
+          }
+        }
+        // snarf up user defined model
+        window.model = this;
+      },
+
+      parseDeclaration: function(elementElement) {
+        this.lightFromTemplate(this.template);
+      }
+
+    }, window.model));
+
+  });
+
+  </script>
+
+</polymer-element>
+<!--
+ Copyright 2013 The Polymer Authors. All rights reserved.
+ Use of this source code is governed by a BSD-style
+ license that can be found in the LICENSE file.
+-->
+<script src="../app/bower_components/polymer/polymer.js"></script>
+<!-- <link rel="import" href="../polymer-dev/polymer.html"> -->
+
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer Elements
+ */
+/**
+ * polymer-xhr can be used to perform XMLHttpRequests.
+ 
+ * Example:
+ *
+ *     <polymer-xhr id="xhr"></polymer-xhr>
+ *     ...
+ *     this.$.xhr.request({url: url, params: params, callback: callback});
+ *
+ * @class polymer-xhr
+ */
+-->
+
+
+<polymer-element name="polymer-xhr" assetpath="../app/bower_components/polymer-ajax/">
+  <template>
+    <style>
+      :host {
+        display: none;
+      }
+    </style>
+  </template>
+  <script>
+    Polymer('polymer-xhr', {
+      makeReadyStateHandler: function(xhr, callback) {
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4) {
+            callback && callback.call(null, xhr.response, xhr);
+          }
+        };
+      },
+      setRequestHeaders: function(xhr, headers) {
+        if (headers) {
+          for (var name in headers) {
+            xhr.setRequestHeader(name, headers[name]);
+          }
+        }
+      },
+      toQueryString: function(params) {
+        var r = [];
+        for (var n in params) {
+          var v = params[n];
+          n = encodeURIComponent(n);
+          r.push(v == null ? n : (n + '=' + encodeURIComponent(v)));
+        }
+        return r.join('&');
+      },
+      /**
+       * Sends a HTTP request to the server and returns the XHR object.
+       *
+       * @method request
+       * @param {Object} inOptions
+       *    @param {String} inOptions.url The url to which the request is sent.
+       *    @param {String} inOptions.method The HTTP method to use, default is GET.
+       *    @param {boolean} inOptions.sync By default, all requests are sent asynchronously.
+       *        To send synchronous requests, set to true.
+       *    @param {Object} inOptions.params Data to be sent to the server.
+       *    @param {Object} inOptions.body The content for the request body for POST method.
+       *    @param {Object} inOptions.headers HTTP request headers.
+       *    @param {String} inOptions.responseType The response type. Default is 'text'.
+       *    @param {Object} inOptions.callback Called when request is completed.
+       * @returns {Object} XHR object.
+       */
+      request: function(options) {
+        var xhr = new XMLHttpRequest();
+        var url = options.url;
+        var method = options.method || 'GET';
+        var async = !options.sync;
+        var params = this.toQueryString(options.params);
+        if (params && method == 'GET') {
+          url += (url.indexOf('?') > 0 ? '&' : '?') + params;
+        }
+        xhr.open(method, url, async);
+        if (options.responseType) {
+          xhr.responseType = options.responseType;
+        }
+        this.makeReadyStateHandler(xhr, options.callback);
+        this.setRequestHeaders(xhr, options.headers);
+        xhr.send(method == 'POST' ? (options.body || params) : null);
+        if (!async) {
+          xhr.onreadystatechange(xhr);
+        }
+        return xhr;
+      }
+    });
+  </script>
+</polymer-element>
+
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Polymer Elements
+ */
+ 
+/**
+ * The `polymer-ajax` element performs `XMLHttpRequest`s.
+ * 
+ * You can trigger a request explicitly by calling `go` on the
+ * element. 
+ * 
+ * With `auto` set to `true`, the element performs a request whenever
+ * its `url` or `params` properties are changed.
+ * 
+ *
+ * Example:
+ *
+ *     <polymer-ajax auto url="http://gdata.youtube.com/feeds/api/videos/" 
+ *         params='{"alt":"json", "q":"chrome"}'
+ *         handleAs="json"
+ *         on-polymer-response="{{handleResponse}}">
+ *     </polymer-ajax>
+ * 
+ * Note: The `params` attribute must be double quoted JSON.
+ *
+ * @class polymer-ajax
+ * @status beta
+ * @homepage github.io
+ *
+ */
+ 
+/**
+ * Fired when a response is received.
+ * 
+ * @event polymer-response
+ */
+ 
+/**
+ * Fired when an error is received.
+ * 
+ * @event polymer-error
+ */
+ 
+/**
+ * Fired whenever a response or an error is received.
+ *
+ * @event polymer-complete
+ */
+ 
+-->
+
+
+
+<polymer-element name="polymer-ajax" attributes="url handleAs auto params response method headers body contentType" assetpath="../app/bower_components/polymer-ajax/">
+  <script>
+    Polymer('polymer-ajax', {
+      /**
+       * The URL target of the request.
+       * 
+       * @attribute url
+       * @type string
+       * @default ''
+       */
+      url: '',
+      /**
+       * Specifies what data to store in the `response` property, and
+       * to deliver as `event.response` in `response` events.
+       * 
+       * One of:
+       * 
+       *    `text`: uses `XHR.responseText`.
+       *    
+       *    `xml`: uses `XHR.responseXML`.
+       *    
+       *    `json`: uses `XHR.responseText` parsed as JSON.
+       *  
+       * @attribute handleAs
+       * @type string
+       * @default 'text'
+       */
+      handleAs: '',
+      /**
+       * If true, automatically performs an Ajax request when either `url` or `params` changes.
+       *
+       * @attribute auto
+       * @type boolean
+       * @default false
+       */
+      auto: false,
+      /**
+       * Parameters to send to the specified URL, as JSON.
+       *  
+       * @attribute params
+       * @type string (JSON)
+       * @default ''
+       */
+      params: '',
+      /**
+       * Returns the response object.
+       *
+       * @attribute response
+       * @type Object
+       * @default null
+       */
+      response: null,
+      /**
+       * The HTTP method to use such as 'GET', 'POST', 'PUT', or 'DELETE'.
+       * Default is 'GET'.
+       *
+       * @attribute method
+       * @type string
+       * @default ''
+       */
+      method: '',
+      /**
+       * HTTP request headers to send.
+       *
+       * Example:
+       *
+       *     <polymer-ajax auto url="http://somesite.com"
+       *         headers='{"X-Requested-With": "XMLHttpRequest"}'
+       *         handleAs="json"
+       *         on-polymer-response="{{handleResponse}}">
+       *     </polymer-ajax>
+       *  
+       * @attribute headers
+       * @type Object
+       * @default null
+       */
+      headers: null,
+      /**
+       * Optional raw body content to send when method === "POST".
+       *
+       * Example:
+       *
+       *     <polymer-ajax method="POST" auto url="http://somesite.com"
+       *         body='{"foo":1, "bar":2}'>
+       *     </polymer-ajax>
+       *  
+       * @attribute body
+       * @type Object
+       * @default null
+       */
+      body: null,
+      /**
+       * Content type to use when sending data.
+       *
+       * @attribute contentType
+       * @type string
+       * @default 'application/x-www-form-urlencoded'
+       */
+      contentType: 'application/x-www-form-urlencoded',
+      ready: function() {
+        this.xhr = document.createElement('polymer-xhr');
+      },
+      receive: function(response, xhr) {
+        if (this.isSuccess(xhr)) {
+          this.processResponse(xhr);
+        } else {
+          this.error(xhr);
+        }
+        this.complete(xhr);
+      },
+      isSuccess: function(xhr) {
+        var status = xhr.status || 0;
+        return !status || (status >= 200 && status < 300);
+      },
+      processResponse: function(xhr) {
+        var response = this.evalResponse(xhr);
+        this.response = response;
+        this.fire('polymer-response', {response: response, xhr: xhr});
+      },
+      error: function(xhr) {
+        var response = xhr.status + ': ' + xhr.responseText;
+        this.fire('polymer-error', {response: response, xhr: xhr});
+      },
+      complete: function(xhr) {
+        this.fire('polymer-complete', {response: xhr.status, xhr: xhr});
+      },
+      evalResponse: function(xhr) {
+        return this[(this.handleAs || 'text') + 'Handler'](xhr);
+      },
+      xmlHandler: function(xhr) {
+        return xhr.responseXML;
+      },
+      textHandler: function(xhr) {
+        return xhr.responseText;
+      },
+      jsonHandler: function(xhr) {
+        var r = xhr.responseText;
+        try {
+          return JSON.parse(r);
+        } catch (x) {
+          return r;
+        }
+      },
+      urlChanged: function() {
+        if (!this.handleAs) {
+          var ext = String(this.url).split('.').pop();
+          switch (ext) {
+            case 'json':
+              this.handleAs = 'json';
+              break;
+          }
+        }
+        this.autoGo();
+      },
+      paramsChanged: function() {
+        this.autoGo();
+      },
+      autoChanged: function() {
+        this.autoGo();
+      },
+      // TODO(sorvell): multiple side-effects could call autoGo 
+      // during one micro-task, use a job to have only one action 
+      // occur
+      autoGo: function() {
+        if (this.auto) {
+          this.goJob = this.job(this.goJob, this.go, 0);
+        }
+      },
+      /**
+       * Performs an Ajax request to the specified URL.
+       *
+       * @method go
+       */
+      go: function() {
+        var args = this.xhrArgs || {};
+        // TODO(sjmiles): alternatively, we could force POST if body is set
+        if (this.method === 'POST') {
+          args.body = this.body || args.body;
+        }
+        args.params = this.params || args.params;
+        if (args.params && typeof(args.params) == 'string') {
+          args.params = JSON.parse(args.params);
+        }
+        args.headers = this.headers || args.headers || {};
+        if (args.headers && typeof(args.headers) == 'string') {
+          args.headers = JSON.parse(args.headers);
+        }
+        if (this.contentType) {
+          args.headers['content-type'] = this.contentType;
+        }
+        args.callback = this.receive.bind(this);
+        args.url = this.url;
+        args.method = this.method;
+        return args.url && this.xhr.request(args);
+      }
+    });
+  </script>
+</polymer-element>
+
+<!--
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ *
+ * Google Maps element
+ *
+ * @class google-map
+ * @blurb Element wrapper around Google Maps API.
+ * @snap http://polymer.github.io/google-map/snap.png
+ * @author The Polymer Authors
+ * @categories Charts and Graphs
+ *
+ */
+-->
+
+<polymer-element name="google-map" attributes="latitude longitude zoom showCenterMarker map" assetpath="../app/elements/">
+  <template>
+    <style>
+      :host {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      
+      #map {
+        position: absolute;
+        width: 100%;
+        min-height: 300px;
+        min-width: 300px;
+        margin-left: 35px;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+    </style>
+
+    <div id="map"></div>
+  </template>
+  <script>
+    (function() {
+      var CALLBACK_NAME = 'polymer_google_map_callback';
+      var MAP_URL = 'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&sensor=false&callback=' + CALLBACK_NAME;
+      var pendingCallbacks = [];
+      var loading;
+      
+      function loadMapApi(callback) {
+        if (window.google && window.google.maps) {
+          callback();
+          return;
+        }
+        if (!loading) {
+          loading = true;
+          window[CALLBACK_NAME] = mapApiLoaded.bind(this);
+          var s = document.createElement('script');
+          s.src = MAP_URL;
+          document.head.appendChild(s);
+        }
+        pendingCallbacks.push(callback);
+      }
+      
+      function mapApiLoaded() {
+        delete window[CALLBACK_NAME];
+        pendingCallbacks.forEach(function(callback) {
+          callback();
+        });
+      }
+      
+      Polymer('google-map', {
+        latitude: '37.77493',
+        longitude: '-122.41942',
+        zoom: 10,
+        showCenterMarker: false,
+        observe: {
+          latitude: 'updateCenter',
+          longitude: 'updateCenter'
+        },
+        ready: function() {
+          loadMapApi(this.mapReady.bind(this));
+        },
+        enteredView: function() {
+          this.resize();
+        },
+        mapReady: function() {
+          this.map = new google.maps.Map(this.$.map, {
+            zoom: this.zoom,
+            center: new google.maps.LatLng(this.latitude, this.longitude)
+          });
+          this.showCenterMarkerChanged();
+          this.fire('google-map-ready');
+        },
+        resize: function() {
+          if (this.map) {
+            google.maps.event.trigger(this.map, 'resize');
+            this.updateCenter();
+          }
+        },
+        updateCenter: function() {
+          if (!this.map) {
+            return;
+          }
+          this.map.setCenter(
+              new google.maps.LatLng(this.latitude, this.longitude));
+          this.showCenterMarkerChanged();
+        },
+        zoomChanged: function() {
+          if (this.map) {
+            this.map.setZoom(Number(this.zoom));
+          }
+        },
+        showCenterMarkerChanged: function() {
+          if (!this.map) {
+            return;
+          }
+          if (!this.centerMarker && this.showCenterMarker) {
+            this.centerMarker = new google.maps.Marker({
+              map: this.map
+            });
+          }
+          if (this.centerMarker) {
+            this.centerMarker.setPosition(this.map.getCenter());
+            this.centerMarker.setMap(this.showCenterMarker ? this.map : null);
+          }
+        }
+      });
+    })();
+  </script>
+</polymer-element>
+
+<polymer-element name="current-location" attributes="position" assetpath="../app/elements/">
+  <template>
+    <content></content>
+  </template>
+  <script>
+  Polymer('current-location', {
+   applyAuthorStyles: true,
+   ready: function() {
+        var _this = this;
+        navigator.geolocation.getCurrentPosition(function(data) {
+            _this.position = data;
+            _this.fire('location-ready', {data: data});
+	});
+   }
+  });
+  </script>
+</polymer-element>
+
+
+
+
+<polymer-element name="boris-bikes" constructor="BorisBikesElement" attributes="latitude longitude url" assetpath="../app/elements/">
+    <template>
+        <style>
+            /* styles for the custom element itself - lowest specificity */
+            :host { display: block; width: 100%; }
+            /* 
+            style if an ancestor has the different class
+            :host(.different) { } 
+            */
+            .col-sm-6 {
+                width: 50%;
+                min-height: 300px;
+                float:left;
+            }
+        </style>
+
+        <polymer-ajax id="status_data" url="{{url}}" auto="true" handleas="xml" response="{{data}}" on-polymer-response="{{responseHandler}}"></polymer-ajax>
+        <current-location id="user_location"></current-location>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    <small>Data from: {{lastUpdate}}</small>
+                    <h3>Boris Bikes near:</h3>
+                    <label for="latitude">Latitude</label>
+                    <input id="latitude" name="latitude" value="{{latitude}}"><br>
+                    <label for="longitude">Longitude</label>
+                    <input id="longitude" name="longitude" value="{{longitude}}">
+                    <template if="{{closestBike}}">
+                        <p>Closest bike rack is in: <strong>{{closestBike.name}}</strong> (terminal name: {{closestBike.terminalName}})</p>
+                        <p>There are <strong>{{closestBike.nbBikes}} free Bikes</strong></p>
+                        <p>There are <strong>{{closestBike.nbEmptyDocks}} empty docks</strong></p>
+                    </template>
+                    <select id="address" on-change="{{changeLocation}}">
+                        <template repeat="{{bike in bikes}}">
+                            <option value="{{bike.id}}">{{bike.name}}</option>
+                        </template>
+                    </select>
+                </div>
+                <div class="col-sm-6">
+                    <google-map latitude="{{latitude}}" longitude="{{longitude}}" showcentermarker="true" zoom="16" type="roadmap"></google-map>
+                </div>
+             </div>
+        </div>
+        
+    </template>
+    <script>
+        Polymer('boris-bikes', {
+            //applyAuthorStyles: true,
+            //resetStyleInheritance: true,
+            url: 'livecyclehireupdates.xml',
+            data: null,
+            lastUpdate: 'Not updated yet',
+            longitude: null,
+            latitude: null,
+            closestBike: null,
+            
+            ready: function() {
+                var that = this;
+                this.$.user_location.addEventListener('location-ready', function(e) {
+                    if (typeof e.detail.data.coords.latitude !== "undefined") {
+                        that.latitude = e.detail.data.coords.latitude;
+                    }
+                    if (typeof e.detail.data.coords.longitude !== "undefined") {
+                        that.longitude = e.detail.data.coords.longitude;
+                    }
+                });
+            },
+                    
+            responseHandler: function() {
+                this.bikes = this.xmlToJson(this.data).stations;
+                this.lastUpdate = new Date(parseInt(this.bikes['@attributes'].lastUpdate));
+                this.bikes = this.bikes.station;
+            },
+                    
+            changeLocation: function() {
+                var bike = this.getBike(this.$.address.value);
+                if (bike) {
+                    this.closestBike = bike;
+                    this.longitude = bike.long;
+                    this.latitude = bike.lat;
+                }
+            },
+                    
+            getBike: function(id) {
+                for (var i = 0; i < this.bikes.length; i++) {
+                    if (this.bikes[i].id === id) {
+                        return this.bikes[i];
+                    }
+                }
+
+                return false;
+            },
+                    
+            getClosestBike: function() {
+                var minD = Infinity,
+                        minBike = null,
+                        d = Infinity;
+                if (typeof this.bikes !== "undefined") {
+                    this.bikes.forEach(function(bike, i) {
+                        d = this.getDistance(bike.lat, bike.long, this.latitude, this.longitude);
+                        if (d < minD) {
+                            minD = d;
+                            minBike = bike;
+                        }
+                    }, this);
+
+                    this.closestBike = minBike;
+                    this.$.address.value = minBike.id;
+                }
+            },
+                    
+            getDistance: function(lat1, lon1, lat2, lon2) {
+                var R = 6371; // km
+                var dLat = this.toRad(lat2 - lat1);
+                var dLon = this.toRad(lon2 - lon1);
+                var lat1 = this.toRad(lat1);
+                var lat2 = this.toRad(lat2);
+
+                var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c;
+            },
+                    
+            toRad: function(number) {
+                return number * Math.PI / 180;
+            },
+                    
+            attributeChanged: function(attrName, oldVal, newVal) {
+                if (attrName === 'latitude' || attrName === 'longitude') {
+                    this.getClosestBike();
+                }
+            },
+                    
+            xmlToJson: function(xml) {
+                // Create the return object
+                var obj = {};
+
+                if (xml.nodeType === 1) { // element
+                    // do attributes
+                    if (xml.attributes.length > 0) {
+                        obj["@attributes"] = {};
+                        for (var j = 0; j < xml.attributes.length; j++) {
+                            var attribute = xml.attributes.item(j);
+                            obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+                        }
+                    }
+                } else if (xml.nodeType === 3) { // text
+                    obj = xml.nodeValue.toString();
+                }
+
+                // do children
+                if (xml.hasChildNodes()) {
+                    for (var i = 0; i < xml.childNodes.length; i++) {
+                        var item = xml.childNodes.item(i);
+                        var nodeName = item.nodeName;
+                        if (typeof(obj[nodeName]) === "undefined") {
+                            if (nodeName === '#text') {
+                                obj = item.nodeValue;
+                            } else {
+                                obj[nodeName] = this.xmlToJson(item);
+                            }
+                        } else {
+                            if (typeof(obj[nodeName].push) === "undefined") {
+                                var old = obj[nodeName];
+                                obj[nodeName] = [];
+                                obj[nodeName].push(old);
+                            }
+                            obj[nodeName].push(this.xmlToJson(item));
+                        }
+                    }
+                }
+                return obj;
+            }
+        });
+    </script>
+</polymer-element>
+
+        
+        <div class="container">
+            <div class="header">
+                <h3 class="text-muted">Boris Bikes Component</h3>
+            </div>
+
+
+            <div class="row marketing">
+                <div class="col-lg-12">
+                    <h4>The Component</h4>
+                    <p>
+                        <boris-bikes></boris-bikes>
+                    </p>
+                    
+                    <h4>The Attributes</h4>
+                    <p>latitude, longitude, url</p>
+                    
+                    <h4>Bootstrap</h4>
+                    <p>Sleek, intuitive, and powerful mobile first front-end framework for faster and easier web development.</p>
+
+                    <h4>Platform.js</h4>
+                    <p>Web Component polyfills for Custom Elements, HTML Imports, Templates and ShadowDOM.</p>
+
+                    <h4>Polymer</h4>
+                    <p>A new type of library for the web, built on top of Web Components, and designed to leverage the evolving web platform on modern browsers.</p>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>by <a href="http://github.com/beldar">beldar</a></p>
+            </div>
+
+        </div>
+        
+
+      <script>
+        document.addEventListener('WebComponentsReady', function() {
+            // Perform some behaviour
+        });
+      </script>
+    </body>
+</html>
