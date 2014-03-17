@@ -1,9 +1,14 @@
 # Boris Bikes Component
 -------
 
-This is a Web Component that uses [Polymer](http://www.polymer-project.org/) to create it and to provide a fallback in case the browser doesn't suppoer web components.
+This is a Web Component that uses [Polymer](http://www.polymer-project.org/) to create it and to provide a fallback in case the browser don't support web components.
 
 It provides a component that fetches the Boris Bike data (free bikes, free docks, etc) and provides and interface for it.
+
+Please note that this component has two other custom components as a dependency , `current-location.html` and `google-map.html` you can modify the component
+if you don't want those elements.
+
+Also has a dependency on `polymer-ajax.html` but that's installed with bower.
 
 You can find a working demo here: http://beldar.github.io/boris-bikes/
 
