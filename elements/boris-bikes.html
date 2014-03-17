@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/polymer-ajax/polymer-ajax.html">
+<link rel="import" href="google-map.html">
 <link rel="import" href="current-location.html">
 <polymer-element name="boris-bikes"  constructor="BorisBikesElement" attributes="latitude longitude url">
     <template>
@@ -10,6 +11,11 @@
             style if an ancestor has the different class
             :host(.different) { } 
             */
+            .col-sm-6 {
+                width: 50%;
+                min-height: 300px;
+                float:left;
+            }
         </style>
 
         <polymer-ajax id="status_data"
@@ -19,22 +25,32 @@
                       response="{{data}}"
                       on-polymer-response="{{responseHandler}}"></polymer-ajax>
         <current-location id="user_location"></current-location>
-        <small>Data from: {{lastUpdate}}</small>
-        <h3>Boris Bikes near:</h3>
-        <label for="latitude">Latitude</label>
-        <input id="latitude" name="latitude" value="{{latitude}}" />
-        <label for="longitude">Longitude</label>
-        <input id="longitude" name="longitude" value="{{longitude}}" />
-        <template if="{{closestBike}}">
-            <p>Closest bike rack is in: <strong>{{closestBike.name}}</strong> (terminal name: {{closestBike.terminalName}})</p>
-            <p>There are <strong>{{closestBike.nbBikes}} free Bikes</strong></p>
-            <p>There are <strong>{{closestBike.nbEmptyDocks}} empty docks</strong></p>
-        </template>
-        <select id="address" on-change="{{changeLocation}}">
-            <template repeat="{{bike in bikes}}">
-                <option value="{{bike.id}}">{{bike.name}}</option>
-            </template>
-        </select>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    <small>Data from: {{lastUpdate}}</small>
+                    <h3>Boris Bikes near:</h3>
+                    <label for="latitude">Latitude</label>
+                    <input id="latitude" name="latitude" value="{{latitude}}" /><br/>
+                    <label for="longitude">Longitude</label>
+                    <input id="longitude" name="longitude" value="{{longitude}}" />
+                    <template if="{{closestBike}}">
+                        <p>Closest bike rack is in: <strong>{{closestBike.name}}</strong> (terminal name: {{closestBike.terminalName}})</p>
+                        <p>There are <strong>{{closestBike.nbBikes}} free Bikes</strong></p>
+                        <p>There are <strong>{{closestBike.nbEmptyDocks}} empty docks</strong></p>
+                    </template>
+                    <select id="address" on-change="{{changeLocation}}">
+                        <template repeat="{{bike in bikes}}">
+                            <option value="{{bike.id}}">{{bike.name}}</option>
+                        </template>
+                    </select>
+                </div>
+                <div class="col-sm-6">
+                    <google-map latitude="{{latitude}}" longitude="{{longitude}}" showCenterMarker="true" zoom="16" type="roadmap"></google-map>
+                </div>
+             </div>
+        </div>
+        
     </template>
     <script>
         Polymer('boris-bikes', {
