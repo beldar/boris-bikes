@@ -2,7 +2,7 @@
 <link rel="import" href="../bower_components/polymer-ajax/polymer-ajax.html">
 <link rel="import" href="google-map.html">
 <link rel="import" href="current-location.html">
-<polymer-element name="boris-bikes"  constructor="BorisBikesElement" attributes="latitude longitude url">
+<polymer-element name="boris-bikes"  constructor="BorisBikesElement" attributes="latitude longitude url map geolocation">
     <template>
         <style>
             /* styles for the custom element itself - lowest specificity */
@@ -24,7 +24,9 @@
                       handleAs="xml"
                       response="{{data}}"
                       on-polymer-response="{{responseHandler}}"></polymer-ajax>
-        <current-location id="user_location"></current-location>
+        <template bind if="geolocation">
+            <current-location id="user_location"></current-location>
+        </template>
         <div class="container">
             <div class="row">
                 <div class="col-sm-6">
@@ -46,7 +48,9 @@
                     </select>
                 </div>
                 <div class="col-sm-6">
-                    <google-map latitude="{{latitude}}" longitude="{{longitude}}" showCenterMarker="true" zoom="16" type="roadmap"></google-map>
+                    <template bind if="map">
+                        <google-map latitude="{{latitude}}" longitude="{{longitude}}" showCenterMarker="true" zoom="16" type="roadmap"></google-map>
+                    </template>
                 </div>
              </div>
         </div>
@@ -62,17 +66,21 @@
             longitude: null,
             latitude: null,
             closestBike: null,
+            map: true,
+            geolocation: true,
             
             ready: function() {
                 var that = this;
-                this.$.user_location.addEventListener('location-ready', function(e) {
-                    if (typeof e.detail.data.coords.latitude !== "undefined") {
-                        that.latitude = e.detail.data.coords.latitude;
-                    }
-                    if (typeof e.detail.data.coords.longitude !== "undefined") {
-                        that.longitude = e.detail.data.coords.longitude;
-                    }
-                });
+                if (this.geolocation) {
+                    this.$.user_location.addEventListener('location-ready', function(e) {
+                        if (typeof e.detail.data.coords.latitude !== "undefined") {
+                            that.latitude = e.detail.data.coords.latitude;
+                        }
+                        if (typeof e.detail.data.coords.longitude !== "undefined") {
+                            that.longitude = e.detail.data.coords.longitude;
+                        }
+                    });
+                }
             },
                     
             responseHandler: function() {

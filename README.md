@@ -77,6 +77,8 @@ Attributes summary
 | latitude  | Defines the latitude to find the closest bike rack | null         |
 | longitude | Defines the longitude to find the closest bike rack          | null           |
 | url       | Defines the url to get the data from | livecyclehireupdates.xml |
+| map       | Show google map of the location   | True  |
+| geolocation | Ask for browser's geolocation position | True |
 
 Functionality
 ------------
