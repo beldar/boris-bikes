@@ -1,6 +1,21 @@
 {
   "name": "boris-bikes",
   "version": "0.0.1",
+  "homepage": "https://github.com/beldar/boris-bikes",
+  "autors" : [
+    "Martí Planellas <beldar.cat@gmail.com>"
+  ],
+  "description" : "A Polymer element for fetching and rendering Boris Bikes data on London, getting your current location and displaying the rack location in a map.",
+  "main" : "boris-bikes.html",
+  "keywords" : [
+    "web-component",
+    "web-components",
+    "polymer",
+    "boris bikes",
+    "barclays bikes",
+    "london"
+  ],
+  "license" : "MIT",
   "dependencies": {
     "sass-bootstrap": "~3.0.0",
     "platform": "Polymer/platform#~0.2.1",

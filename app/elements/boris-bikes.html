@@ -24,7 +24,7 @@
                       handleAs="xml"
                       response="{{data}}"
                       on-polymer-response="{{responseHandler}}"></polymer-ajax>
-        <template bind if="geolocation">
+        <template bind if="{{geolocation}}">
             <current-location id="user_location"></current-location>
         </template>
         <div class="container">
@@ -48,7 +48,7 @@
                     </select>
                 </div>
                 <div class="col-sm-6">
-                    <template bind if="map">
+                    <template bind if="{{map}}">
                         <google-map latitude="{{latitude}}" longitude="{{longitude}}" showCenterMarker="true" zoom="16" type="roadmap"></google-map>
                     </template>
                 </div>
@@ -63,8 +63,8 @@
             url: 'livecyclehireupdates.xml',
             data: null,
             lastUpdate: 'Not updated yet',
-            longitude: null,
-            latitude: null,
+            longitude: -0.109970527,
+            latitude: 51.52916347,
             closestBike: null,
             map: true,
             geolocation: true,
@@ -79,8 +79,13 @@
                         if (typeof e.detail.data.coords.longitude !== "undefined") {
                             that.longitude = e.detail.data.coords.longitude;
                         }
+                        that.getClosestBike();
                     });
                 }
+                setTimeout(function(){
+                    that.getClosestBike();
+                },100);
+                
             },
                     
             responseHandler: function() {
