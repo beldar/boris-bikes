@@ -21,7 +21,6 @@
     "platform": "Polymer/platform#~0.2.1",
     "polymer": "Polymer/polymer#~0.2.1",
     "polymer-ajax": "Polymer/polymer-ajax#~0.2.1",
-    "google-map": "Polymer/google-map#~0.2.1"
   },
   "devDependencies": {}
 }
