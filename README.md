@@ -17,6 +17,13 @@ To know more about web components [there](http://www.html5rocks.com/en/tutorials
 
 # Installation
 
+Via Bower
+--------
+
+    bower install --save boris-bikes
+
+Otherwise...
+
 Dependencies
 ------------
 
