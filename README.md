@@ -10,6 +10,8 @@ if you don't want those elements.
 
 Also has a dependency on `polymer-ajax.html` but that's installed with bower.
 
+The component uses an YQL url to fetch the TFL cross domain XML.
+
 You can find a working demo here: http://beldar.github.io/boris-bikes/
 
 To know more about web components [there](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/) [are](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/) [tons](http://css-tricks.com/modular-future-web-components/) of [resources](https://www.google.co.uk/search?q=web+components) available.
@@ -70,8 +72,6 @@ And finally place the element where you want it using the attributes that you ne
 
     <boris-bikes></boris-bikes>
 
-The url attribute defines what url should the component go fetch the data, **since it cannot do a cross domain  request** it gets a local xml copy, you should have some backend service that fetches the information and writes it to that file, or just change the url for the url of your backend (ex. /fetchXml ).
-
 You can also define a longitude and latitude:
 
     <boris-bikes longitude="-0.0733421" latitude="51.5186345"></boris-bikes>
@@ -83,7 +83,6 @@ Attributes summary
 |-----------|--------------------------------------|----------------|
 | latitude  | Defines the latitude to find the closest bike rack | null         |
 | longitude | Defines the longitude to find the closest bike rack          | null           |
-| url       | Defines the url to get the data from | livecyclehireupdates.xml |
 | map       | Show google map of the location   | True  |
 | geolocation | Ask for browser's geolocation position | True |
 
