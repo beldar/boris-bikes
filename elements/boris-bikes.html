@@ -1,0 +1,199 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer-ajax/polymer-ajax.html">
+<link rel="import" href="google-map.html">
+<link rel="import" href="current-location.html">
+<polymer-element name="boris-bikes"  constructor="BorisBikesElement" attributes="latitude longitude url map geolocation">
+    <template>
+        <style>
+            /* styles for the custom element itself - lowest specificity */
+            :host { display: block; width: 100%; }
+            /* 
+            style if an ancestor has the different class
+            :host(.different) { } 
+            */
+            .col-sm-6 {
+                width: 50%;
+                min-height: 300px;
+                float:left;
+            }
+        </style>
+
+        <polymer-ajax id="status_data"
+                      url="{{url}}"
+                      auto="true"
+                      handleAs="xml"
+                      response="{{data}}"
+                      on-polymer-response="{{responseHandler}}"></polymer-ajax>
+        <template bind if="{{geolocation}}">
+            <current-location id="user_location"></current-location>
+        </template>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    <small>Data from: {{lastUpdate}}</small>
+                    <h3>Boris Bikes near:</h3>
+                    <label for="latitude">Latitude</label>
+                    <input id="latitude" name="latitude" value="{{latitude}}" /><br/>
+                    <label for="longitude">Longitude</label>
+                    <input id="longitude" name="longitude" value="{{longitude}}" />
+                    <template if="{{closestBike}}">
+                        <p>Closest bike rack is in: <strong>{{closestBike.name}}</strong> (terminal name: {{closestBike.terminalName}})</p>
+                        <p>There are <strong>{{closestBike.nbBikes}} free Bikes</strong></p>
+                        <p>There are <strong>{{closestBike.nbEmptyDocks}} empty docks</strong></p>
+                    </template>
+                    <select id="address" on-change="{{changeLocation}}">
+                        <template repeat="{{bike in bikes}}">
+                            <option value="{{bike.id}}">{{bike.name}}</option>
+                        </template>
+                    </select>
+                </div>
+                <div class="col-sm-6">
+                    <template bind if="{{map}}">
+                        <google-map latitude="{{latitude}}" longitude="{{longitude}}" showCenterMarker="true" zoom="16" type="roadmap"></google-map>
+                    </template>
+                </div>
+             </div>
+        </div>
+        
+    </template>
+    <script>
+        Polymer('boris-bikes', {
+            //applyAuthorStyles: true,
+            //resetStyleInheritance: true,
+            url: 'livecyclehireupdates.xml',
+            data: null,
+            lastUpdate: 'Not updated yet',
+            longitude: -0.109970527,
+            latitude: 51.52916347,
+            closestBike: null,
+            map: true,
+            geolocation: true,
+            
+            ready: function() {
+                var that = this;
+                if (this.geolocation) {
+                    this.$.user_location.addEventListener('location-ready', function(e) {
+                        if (typeof e.detail.data.coords.latitude !== "undefined") {
+                            that.latitude = e.detail.data.coords.latitude;
+                        }
+                        if (typeof e.detail.data.coords.longitude !== "undefined") {
+                            that.longitude = e.detail.data.coords.longitude;
+                        }
+                        that.getClosestBike();
+                    });
+                }
+                setTimeout(function(){
+                    that.getClosestBike();
+                },100);
+                
+            },
+                    
+            responseHandler: function() {
+                this.bikes = this.xmlToJson(this.data).stations;
+                this.lastUpdate = new Date(parseInt(this.bikes['@attributes'].lastUpdate));
+                this.bikes = this.bikes.station;
+            },
+                    
+            changeLocation: function() {
+                var bike = this.getBike(this.$.address.value);
+                if (bike) {
+                    this.closestBike = bike;
+                    this.longitude = bike.long;
+                    this.latitude = bike.lat;
+                }
+            },
+                    
+            getBike: function(id) {
+                for (var i = 0; i < this.bikes.length; i++) {
+                    if (this.bikes[i].id === id) {
+                        return this.bikes[i];
+                    }
+                }
+
+                return false;
+            },
+                    
+            getClosestBike: function() {
+                var minD = Infinity,
+                        minBike = null,
+                        d = Infinity;
+                if (typeof this.bikes !== "undefined") {
+                    this.bikes.forEach(function(bike, i) {
+                        d = this.getDistance(bike.lat, bike.long, this.latitude, this.longitude);
+                        if (d < minD) {
+                            minD = d;
+                            minBike = bike;
+                        }
+                    }, this);
+
+                    this.closestBike = minBike;
+                    this.$.address.value = minBike.id;
+                }
+            },
+                    
+            getDistance: function(lat1, lon1, lat2, lon2) {
+                var R = 6371; // km
+                var dLat = this.toRad(lat2 - lat1);
+                var dLon = this.toRad(lon2 - lon1);
+                var lat1 = this.toRad(lat1);
+                var lat2 = this.toRad(lat2);
+
+                var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c;
+            },
+                    
+            toRad: function(number) {
+                return number * Math.PI / 180;
+            },
+                    
+            attributeChanged: function(attrName, oldVal, newVal) {
+                if (attrName === 'latitude' || attrName === 'longitude') {
+                    this.getClosestBike();
+                }
+            },
+                    
+            xmlToJson: function(xml) {
+                // Create the return object
+                var obj = {};
+
+                if (xml.nodeType === 1) { // element
+                    // do attributes
+                    if (xml.attributes.length > 0) {
+                        obj["@attributes"] = {};
+                        for (var j = 0; j < xml.attributes.length; j++) {
+                            var attribute = xml.attributes.item(j);
+                            obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+                        }
+                    }
+                } else if (xml.nodeType === 3) { // text
+                    obj = xml.nodeValue.toString();
+                }
+
+                // do children
+                if (xml.hasChildNodes()) {
+                    for (var i = 0; i < xml.childNodes.length; i++) {
+                        var item = xml.childNodes.item(i);
+                        var nodeName = item.nodeName;
+                        if (typeof(obj[nodeName]) === "undefined") {
+                            if (nodeName === '#text') {
+                                obj = item.nodeValue;
+                            } else {
+                                obj[nodeName] = this.xmlToJson(item);
+                            }
+                        } else {
+                            if (typeof(obj[nodeName].push) === "undefined") {
+                                var old = obj[nodeName];
+                                obj[nodeName] = [];
+                                obj[nodeName].push(old);
+                            }
+                            obj[nodeName].push(this.xmlToJson(item));
+                        }
+                    }
+                }
+                return obj;
+            }
+        });
+    </script>
+</polymer-element>
