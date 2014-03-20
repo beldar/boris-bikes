@@ -567,7 +567,7 @@ license that can be found in the LICENSE file.
 
 
 
-<polymer-element name="boris-bikes" constructor="BorisBikesElement" attributes="latitude longitude url" assetpath="../app/elements/">
+<polymer-element name="boris-bikes" constructor="BorisBikesElement" attributes="latitude longitude map geolocation" assetpath="../app/elements/">
     <template>
         <style>
             /* styles for the custom element itself - lowest specificity */
@@ -583,12 +583,18 @@ license that can be found in the LICENSE file.
             }
         </style>
 
-        <polymer-ajax id="status_data" url="{{url}}" auto="true" handleas="xml" response="{{data}}" on-polymer-response="{{responseHandler}}"></polymer-ajax>
-        <current-location id="user_location"></current-location>
+        <polymer-ajax id="status_data" url="{{url}}" auto="true" handleas="json" response="{{data}}" on-polymer-response="{{responseHandler}}"></polymer-ajax>
+        <template bind="" if="{{geolocation}}">
+            <current-location id="user_location"></current-location>
+        </template>
         <div class="container">
             <div class="row">
                 <div class="col-sm-6">
-                    <small>Data from: {{lastUpdate}}</small>
+                    <small>
+                        Data from: {{lastUpdate}}<br>
+                        Last fetch: {{lastFetch}}<br> 
+                        <a href="../app/elements/#" id="reload">Reload data</a>
+                    </small>
                     <h3>Boris Bikes near:</h3>
                     <label for="latitude">Latitude</label>
                     <input id="latitude" name="latitude" value="{{latitude}}"><br>
@@ -606,7 +612,9 @@ license that can be found in the LICENSE file.
                     </select>
                 </div>
                 <div class="col-sm-6">
-                    <google-map latitude="{{latitude}}" longitude="{{longitude}}" showcentermarker="true" zoom="16" type="roadmap"></google-map>
+                    <template bind="" if="{{map}}">
+                        <google-map latitude="{{latitude}}" longitude="{{longitude}}" showcentermarker="true" zoom="16" type="roadmap"></google-map>
+                    </template>
                 </div>
              </div>
         </div>
@@ -616,31 +624,49 @@ license that can be found in the LICENSE file.
         Polymer('boris-bikes', {
             //applyAuthorStyles: true,
             //resetStyleInheritance: true,
-            url: 'livecyclehireupdates.xml',
+            url: 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%3D%22http%3A%2F%2Fwww.tfl.gov.uk%2Ftfl%2Fsyndication%2Ffeeds%2Fcycle-hire%2Flivecyclehireupdates.xml%22&format=json',
             data: null,
             lastUpdate: 'Not updated yet',
-            longitude: null,
-            latitude: null,
+            longitude: -0.109970527,
+            latitude: 51.52916347,
             closestBike: null,
+            map: true,
+            geolocation: true,
+            lastFetch: 'Not fetched yet',
             
             ready: function() {
                 var that = this;
-                this.$.user_location.addEventListener('location-ready', function(e) {
-                    if (typeof e.detail.data.coords.latitude !== "undefined") {
-                        that.latitude = e.detail.data.coords.latitude;
-                    }
-                    if (typeof e.detail.data.coords.longitude !== "undefined") {
-                        that.longitude = e.detail.data.coords.longitude;
-                    }
+                
+                if (this.geolocation) {
+                    this.$.user_location.addEventListener('location-ready', function(e) {
+                        if (typeof e.detail.data.coords.latitude !== "undefined") {
+                            that.latitude = e.detail.data.coords.latitude;
+                        }
+                        if (typeof e.detail.data.coords.longitude !== "undefined") {
+                            that.longitude = e.detail.data.coords.longitude;
+                        }
+                        that.getClosestBike();
+                    });
+                }
+                
+                this.$.reload.addEventListener('click', function(e){
+                    e.preventDefault();
+                    that.$.status_data.go();
+                    return false;
                 });
             },
                     
             responseHandler: function() {
-                this.bikes = this.xmlToJson(this.data).stations;
-                this.lastUpdate = new Date(parseInt(this.bikes['@attributes'].lastUpdate));
-                this.bikes = this.bikes.station;
+                var that = this;
+                this.lastFetch = new Date();
+                this.bikes = this.data.query.results.stations.station;
+                this.lastUpdate = new Date(parseInt(this.data.query.results.stations.lastUpdate));
+                
+                setTimeout(function(){
+                    that.getClosestBike();
+                },10); 
             },
-                    
+                         
             changeLocation: function() {
                 var bike = this.getBike(this.$.address.value);
                 if (bike) {
@@ -699,47 +725,6 @@ license that can be found in the LICENSE file.
                 if (attrName === 'latitude' || attrName === 'longitude') {
                     this.getClosestBike();
                 }
-            },
-                    
-            xmlToJson: function(xml) {
-                // Create the return object
-                var obj = {};
-
-                if (xml.nodeType === 1) { // element
-                    // do attributes
-                    if (xml.attributes.length > 0) {
-                        obj["@attributes"] = {};
-                        for (var j = 0; j < xml.attributes.length; j++) {
-                            var attribute = xml.attributes.item(j);
-                            obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
-                        }
-                    }
-                } else if (xml.nodeType === 3) { // text
-                    obj = xml.nodeValue.toString();
-                }
-
-                // do children
-                if (xml.hasChildNodes()) {
-                    for (var i = 0; i < xml.childNodes.length; i++) {
-                        var item = xml.childNodes.item(i);
-                        var nodeName = item.nodeName;
-                        if (typeof(obj[nodeName]) === "undefined") {
-                            if (nodeName === '#text') {
-                                obj = item.nodeValue;
-                            } else {
-                                obj[nodeName] = this.xmlToJson(item);
-                            }
-                        } else {
-                            if (typeof(obj[nodeName].push) === "undefined") {
-                                var old = obj[nodeName];
-                                obj[nodeName] = [];
-                                obj[nodeName].push(old);
-                            }
-                            obj[nodeName].push(this.xmlToJson(item));
-                        }
-                    }
-                }
-                return obj;
             }
         });
     </script>
